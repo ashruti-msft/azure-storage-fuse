@@ -16,7 +16,6 @@ stages:
       vmImage: $(vmImage)
 
     variables:
-      - group: NightlyBlobFuse
       - name: root_dir
         value: '$(System.DefaultWorkingDirectory)'
       - name: work_dir
