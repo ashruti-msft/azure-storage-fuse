@@ -1,12 +1,12 @@
 resources:
   pipelines:
   - pipeline: buildPipeline
-    source: 'Blobfuse2 Artifact'
+    source: 'Test-Release'
     project: BlobFuse
     trigger: 
       branches:
         include:
-          - ashruti/oneBranch
+          - main
 
 stages: 
   - stage: TestArtifacts
