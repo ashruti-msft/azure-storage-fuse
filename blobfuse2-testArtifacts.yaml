@@ -15,7 +15,7 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - checkout: self
+          - checkout: none
             persistCredentials: true
           - task: DownloadPipelineArtifact@2
             inputs:
