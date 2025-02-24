@@ -1,12 +1,12 @@
-resources:
-  pipelines:
-  - pipeline: buildPipeline
-    source: 'Test-Release'
-    project: BlobFuse
-    trigger: 
-      branches:
-        include:
-          - main
+# resources:
+#   pipelines:
+#   - pipeline: buildPipeline
+#     source: 'Test-Release'
+#     project: BlobFuse
+#     trigger: 
+#       branches:
+#         include:
+#           - main
 
 stages: 
   - stage: TestArtifacts

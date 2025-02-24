@@ -93,31 +93,37 @@ extends:
         
         steps:
         - checkout: none
-        - script: |
-            git clone https://github.com/Azure/azure-storage-fuse
-          displayName: 'Checkout Code'
-          workingDirectory: $(root_dir)
+        # - script: |
+        #     git clone https://github.com/Azure/azure-storage-fuse
+        #   displayName: 'Checkout Code'
+        #   workingDirectory: $(root_dir)
           
-        # list commits from past 12hrs
-        - script: |
-            git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
-            git --no-pager log --since="12 hours ago" --stat
-          displayName: 'List Commits'
-          workingDirectory: $(work_dir)
+        # # list commits from past 12hrs
+        # - script: |
+        #     git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
+        #     git --no-pager log --since="12 hours ago" --stat
+        #   displayName: 'List Commits'
+        #   workingDirectory: $(work_dir)
           
-        # install dependencies required for compiling blobfuse
-        - script: |
-            sudo apt-get update --fix-missing
-            sudo apt-get install ruby-dev build-essential pkg-config cmake gcc g++ rpm $(fuselib) -y
-            sudo gem install dotenv -v 2.8.1
-            sudo gem install fpm -V
-          displayName: "Installing Dependencies"
+        # # install dependencies required for compiling blobfuse
+        # - script: |
+        #     sudo apt-get update --fix-missing
+        #     sudo apt-get install ruby-dev build-essential pkg-config cmake gcc g++ rpm $(fuselib) -y
+        #     sudo gem install dotenv -v 2.8.1
+        #     sudo gem install fpm -V
+        #   displayName: "Installing Dependencies"
 
-        # get glibc version with which build is done
-        #TODO:: downgrade to fuse2 glibc version
-        - script: |
-            ldd --version
-          displayName: "GLIBC Version"
+        # # get glibc version with which build is done
+        # #TODO:: downgrade to fuse2 glibc version
+        # - script: |
+        #     ldd --version
+        #   displayName: "GLIBC Version"
+
+        - bash: |
+            az pipelines run --project 'BlobFuse' --id 95 --branch 'main' 
+          displayName: 'Trigger Pipeline 123456'
+          env:
+            AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
 # # test-pipeline.yml
 # resources:
