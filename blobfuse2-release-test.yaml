@@ -149,7 +149,7 @@ extends:
             curl -X POST -u ":$PAT" \
             -H "Content-Type: application/json" \
             --data '{ "definitionId": '"$PIPELINE_ID"' }' \
-            "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?ReleasePipelineRunID=$(Build.BuildId)api-version=7.1&waitForCompletion=true"
+            "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?ReleasePipelineRunID={$(Build.BuildId)}&api-version=7.1&waitForCompletion=true"
           displayName: "Trigger and Wait for Pipeline B"
 
         - script: |
