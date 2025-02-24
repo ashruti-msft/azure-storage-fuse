@@ -115,6 +115,11 @@ extends:
           displayName: "Display Run ID"
 
       - job: TriggerTestArtifactsPipeline
+        timeoutInMinutes: 120
+        pool:
+          name: blobfuse2-pool
+          image: ubuntu22-1espt
+          os: linux
         steps:
           - checkout: none
           - bash: |
