@@ -114,20 +114,43 @@ extends:
             echo "$(Build.BuildId)" 
           displayName: "Display Run ID"
 
-      - job: TriggerTestArtifactsPipeline
+      # - job: TriggerTestArtifactsPipeline
+      #   timeoutInMinutes: 120
+      #   pool:
+      #     name: blobfuse2-pool
+      #     image: ubuntu22-1espt
+      #     os: linux
+      #   steps:
+      #     - checkout: none
+      #     - bash: |
+      #         az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)" --wait
+      #       displayName: 'Trigger Pipeline Test-Artifacts'
+      #       env:
+      #         AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+      #     - script: |
+      #         echo "Pipeline continues"
+      #       displayName: "Status"
+
+      - job: TriggerAndWaitForTestPipeline
         timeoutInMinutes: 120
         pool:
           name: blobfuse2-pool
           image: ubuntu22-1espt
           os: linux
         steps:
-          - checkout: none
-          - bash: |
-              az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)" --wait
-            displayName: 'Trigger Pipeline Test-Artifacts'
-            env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+        - script: |
+            PIPELINE_ID=95  
+            ORG_NAME="azstorage"
+            PROJECT_NAME="BlobFuse"
+            PAT=$(System.AccessToken)
 
-          - script: |
-              echo "Pipeline continues"
-            displayName: "Status"
+            curl -X POST -u ":$PAT" \
+            -H "Content-Type: application/json" \
+            --data '{ "definitionId": '"$PIPELINE_ID"' }' \
+            "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/build/builds?api-version=7.1-preview.7&waitForCompletion=true"
+          displayName: "Trigger and Wait for Pipeline B"
+
+        - script: |
+            echo "Pipeline continues"
+          displayName: "Status"
