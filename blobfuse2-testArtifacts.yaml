@@ -1,70 +1,71 @@
+stages:
 - stage: TestArtifacts
-    jobs:
-      - job: Set_0
-        timeoutInMinutes: 120
-        strategy:
-          matrix:
-            Ubuntu-22:
-              agentName: "blobfuse-ubuntu22"
-              vmImage: 'Ubuntu-22.04'
-              fuse-version: 'fuse3'
-              fuselib: 'libfuse3-dev'
-              tags: 'fuse3'
-              container: 'test-cnt-ubn-22'
-        pool:
-          vmImage: $(vmImage)
+  jobs:
+  - job: Set_0
+    timeoutInMinutes: 120
+    strategy:
+      matrix:
+        Ubuntu-22:
+          agentName: "blobfuse-ubuntu22"
+          vmImage: 'Ubuntu-22.04'
+          fuse-version: 'fuse3'
+          fuselib: 'libfuse3-dev'
+          tags: 'fuse3'
+          container: 'test-cnt-ubn-22'
+    pool:
+      vmImage: $(vmImage)
 
-        variables:
-          - group: NightlyBlobFuse
-          - name: root_dir
-            value: '$(System.DefaultWorkingDirectory)'
-          - name: work_dir
-            value: '$(System.DefaultWorkingDirectory)/azure-storage-fuse'
-          - name: mount_dir
-            value: '$(System.DefaultWorkingDirectory)/fusetmp'
-          - name: temp_dir
-            value: '$(System.DefaultWorkingDirectory)/fusetmpcache'
+    variables:
+      - group: NightlyBlobFuse
+      - name: root_dir
+        value: '$(System.DefaultWorkingDirectory)'
+      - name: work_dir
+        value: '$(System.DefaultWorkingDirectory)/azure-storage-fuse'
+      - name: mount_dir
+        value: '$(System.DefaultWorkingDirectory)/fusetmp'
+      - name: temp_dir
+        value: '$(System.DefaultWorkingDirectory)/fusetmpcache'
 
-        steps:
-          - checkout: none
+    steps:
+    - checkout: none
 
-          - script: |
-              git clone https://github.com/Azure/azure-storage-fuse
-            displayName: 'Checkout Code'
-            workingDirectory: $(root_dir)
-          - script: |
-              git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
-            displayName: 'Checkout Branch'
-            workingDirectory: $(root_dir)/azure-storage-fuse
+    - script: |
+        git clone https://github.com/Azure/azure-storage-fuse
+      displayName: 'Checkout Code'
+      workingDirectory: $(root_dir)
+    - script: |
+        git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
+      displayName: 'Checkout Branch'
+      workingDirectory: $(root_dir)/azure-storage-fuse
 
-          # Custom script to install Go-lang
-          - task: ShellScript@2
-            inputs:
-              scriptPath: "$(work_dir)/go_installer.sh"
-              args: "$(root_dir)/"
-            displayName: "GoTool Custom Setup"
-          
-          # get glibc version with which build is done
-          - script: |
-             ldd --version
-            displayName: "GLIBC Version"
-            
-          - task: DownloadBuildArtifacts@1
-            displayName: 'Download Build Artifacts'
-            inputs:
-              buildType: 'specific'
-              project: 'BlobFuse'
-              pipeline: 'Test-Release'
-              runId: 'ReleasePipelineRunID'
-              artifactName: 'blobfuse2-linux-unsigned'
-              downloadPath: '$(root_dir)'
-              itemPattern: 'blobfuse2-signed/blobfuse2*$(tags)*x86_64.deb'
+    # Custom script to install Go-lang
+    - task: ShellScript@2
+      inputs:
+        scriptPath: "$(work_dir)/go_installer.sh"
+        args: "$(root_dir)/"
+      displayName: "GoTool Custom Setup"
+    
+    # get glibc version with which build is done
+    - script: |
+        ldd --version
+      displayName: "GLIBC Version"
+      
+    - task: DownloadBuildArtifacts@1
+      displayName: 'Download Build Artifacts'
+      inputs:
+        buildType: 'specific'
+        project: 'BlobFuse'
+        pipeline: 'Test-Release'
+        runId: $(ReleasePipelineRunID)
+        artifactName: 'blobfuse2-linux-unsigned'
+        downloadPath: '$(root_dir)'
+        # itemPattern: 'blobfuse2-linux-unsigned/blobfuse2*$(tags)*x86_64.deb/'
 
-          - script: |
-              ls -l
-              result=$(ls -1 | wc -l)
-              if [ $result -ne 1 ]; then
-                exit 1
-              fi
-            displayName: 'List Downloaded Package'
-            workingDirectory: $(root_dir)/blobfuse2-linux-unsigned                
+    - script: |
+        ls -l
+        result=$(ls -1 | wc -l)
+        if [ $result -ne 1 ]; then
+          exit 1
+        fi
+      displayName: 'List Downloaded Package'
+      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned                
