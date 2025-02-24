@@ -139,6 +139,7 @@ extends:
           image: ubuntu22-1espt
           os: linux
         steps:
+        - checkout : none
         - script: |
             PIPELINE_ID=95  
             ORG_NAME="azstorage"
