@@ -1,7 +1,6 @@
 variables:
   tags: 'fuse3'
   depends: 'fuse3'
-  ReleasePipelineRunID: $Build.BuildId
 
 parameters:
   - name: tag
@@ -112,13 +111,14 @@ extends:
           displayName: "Shifting file to Artifacts"
         
         - script: |
-            echo "$(ReleasePipelineRunID)"
+            echo "$(Build.BuildId)" 
           displayName: "Display Run ID"
 
       - job: TriggerTestArtifactsPipeline
         steps:
+          - checkout: none
           - bash: |
-              az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(ReleasePipelineRunID)" --wait
+              az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)" --wait
             displayName: 'Trigger Pipeline Test-Artifacts'
             env:
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
