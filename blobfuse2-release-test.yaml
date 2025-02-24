@@ -120,7 +120,7 @@ extends:
         #   displayName: "GLIBC Version"
 
         - bash: |
-            az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --org 'azstorage'
+            az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/'
           displayName: 'Trigger Pipeline 95'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
