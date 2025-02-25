@@ -1,6 +1,12 @@
 variables:
   tags: 'fuse3'
   depends: 'fuse3'
+  organization: 'azstorage'
+  project: 'BlobFuse'
+  pipelineId: 95
+  run_id: 0
+  patToken: $(System.AccessToken)
+  status: 'inProgress'
 
 parameters:
   - name: tag
@@ -141,33 +147,65 @@ extends:
         steps:
         - checkout : none
         - bash: |
-            az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)"
-            az pipelines list --output table --organization 'https://dev.azure.com/azstorage/' --project 'BlobFuse' 
+            triggeredPipeline  = $(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)")
+            # Extract the run ID from the triggered pipeline
+            run_id=$(echo $triggered_run | jq -r '.id')
+            # Print the run ID
+            echo "Triggered pipeline run ID: $run_id"
           displayName: 'Trigger Pipeline Test-Artifacts'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
-        - script: |
-            echo "Pipeline continues"
-          displayName: "Status"
+        - job: CheckPipelineStatus
+          displayName: 'Check Triggered Pipeline Status'
+          steps:
+          - script: |
+              echo "Checking the status of the triggered pipeline..."
+              while true; do
+                status=$(az pipelines runs show --organization https://dev.azure.com/$(organization) --project $(project) --pipeline-id $(pipelineId) --run-id $(run_id) --query status --output tsv --only-show-errors)
+                echo "Current status: $status"
+                if [[ "$status" == "completed" || "$status" == "canceled" || "$status" == "failed" ]]; then
+                  echo "Pipeline run $run_id has $status."
+                  break
+                fi
+                echo "Pipeline run $runId is still in progress. Checking again in 30 seconds..."
+                sleep 30
+              done
+            displayName: 'Check Pipeline Status'
+            env:
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
-        - script: |
-            PIPELINE_ID=95  
-            ORG_NAME="azstorage"
-            PROJECT_NAME="BlobFuse"
-            PAT=$(System.AccessToken)
+        - job: ContinueOriginalPipeline
+          displayName: 'Continue Original Pipeline'
+          dependsOn: CheckPipelineStatus
+          condition: succeeded()
+          steps:
+          - script: 
+              if( "$status" == "completed" ); then
+                echo "Pipeline run $run_id completed successfully. Continuing the original pipeline."
+              else
+                echo "Pipeline run $run_id failed or was canceled. Stopping the original pipeline."
+                exit 1
+              fi
+            displayName: 'Continue Pipeline'
 
-            az pipelines list --output table --organization 'https://dev.azure.com/azstorage/' --project 'BlobFuse' 
+        # - script: |
+        #     PIPELINE_ID=95  
+        #     ORG_NAME="azstorage"
+        #     PROJECT_NAME="BlobFuse"
+        #     PAT=$(System.AccessToken)
+
+        #     az pipelines list --output table --organization 'https://dev.azure.com/azstorage/' --project 'BlobFuse' 
 
 
-            echo "Triggering Pipeline B"
-            echo "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?pipelineVersion=$(Build.BuildId)&api-version=7.1&waitForCompletion=true"  
+        #     echo "Triggering Pipeline B"
+        #     echo "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?pipelineVersion=$(Build.BuildId)&api-version=7.1&waitForCompletion=true"  
             
-            curl -X POST -u ":$PAT" \
-            -H "Content-Type: application/json" \
-            --data '{ "definitionId": '"$PIPELINE_ID"' }' \
-            "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?pipelineVersion=$(Build.BuildId)&api-version=7.1&waitForCompletion=true"
-          displayName: "Trigger and Wait for Pipeline B"
+        #     curl -X POST -u ":$PAT" \
+        #     -H "Content-Type: application/json" \
+        #     --data '{ "definitionId": '"$PIPELINE_ID"' }' \
+        #     "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?pipelineVersion=$(Build.BuildId)&api-version=7.1&waitForCompletion=true"
+        #   displayName: "Trigger and Wait for Pipeline B"
         
         # - task: InvokeRESTAPI@1
           # displayName: 'Trigger Another Pipeline'
