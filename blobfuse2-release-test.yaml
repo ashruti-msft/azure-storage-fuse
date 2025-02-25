@@ -140,40 +140,43 @@ extends:
           os: linux
         steps:
         - checkout : none
-        # - script: |
-        #     PIPELINE_ID=95  
-        #     ORG_NAME="azstorage"
-        #     PROJECT_NAME="BlobFuse"
-        #     PAT=$(System.AccessToken)
+        - script: |
+            PIPELINE_ID=95  
+            ORG_NAME="azstorage"
+            PROJECT_NAME="BlobFuse"
+            PAT=$(System.AccessToken)
 
-        #     curl -X POST -u ":$PAT" \
-        #     -H "Content-Type: application/json" \
-        #     --data '{ "definitionId": '"$PIPELINE_ID"' }' \
-        #     "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?ReleasePipelineRunID={$(Build.BuildId)}&api-version=7.1&waitForCompletion=true"
-        #   displayName: "Trigger and Wait for Pipeline B"
+            echo "Triggering Pipeline B"
+            echo "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?ReleasePipelineRunID={$(Build.BuildId)}&api-version=7.1&waitForCompletion=true"  
+            
+            curl -X POST -u ":$PAT" \
+            -H "Content-Type: application/json" \
+            --data '{ "definitionId": '"$PIPELINE_ID"' }' \
+            "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?ReleasePipelineRunID={$(Build.BuildId)}&api-version=7.1&waitForCompletion=true"
+          displayName: "Trigger and Wait for Pipeline B"
         
-        - task: InvokeRESTAPI@1
-          displayName: 'Trigger Another Pipeline'
-          inputs:
-            connectionType: 'connectedServiceName'
-            serviceConnection: 'anuserviceconn'
-            method: 'POST'
-            urlSuffix: '/_apis/pipelines/95/runs?api-version=6.0-preview.1'
-            headers: |
-              {
-                "Content-Type": "application/json"
-              }
-            body: |
-              {
-                "resources": {
-                  "repositories": {
-                    "self": {
-                      "refName": "refs/heads/main"
-                    }
-                  }
-                }
-              }
-            waitForCompletion: true
+        # - task: InvokeRESTAPI@1
+          # displayName: 'Trigger Another Pipeline'
+          # inputs:
+          #   connectionType: 'connectedServiceName'
+          #   serviceConnection: 'anuserviceconn'
+          #   method: 'POST'
+          #   urlSuffix: '/_apis/pipelines/95/runs?api-version=6.0-preview.1'
+          #   headers: |
+          #     {
+          #       "Content-Type": "application/json"
+          #     }
+          #   body: |
+          #     {
+          #       "resources": {
+          #         "repositories": {
+          #           "self": {
+          #             "refName": "refs/heads/main"
+          #           }
+          #         }
+          #       }
+          #     }
+          #   waitForCompletion: true
 
         - script: |
             echo "Pipeline continues"
