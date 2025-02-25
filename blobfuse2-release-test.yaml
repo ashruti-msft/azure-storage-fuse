@@ -148,7 +148,7 @@ extends:
         - checkout : none
         - bash: |
             set -e
-            triggeredPipeline  = $(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)")
+            triggeredPipeline  = $(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --variables "ReleasePipelineRunID=$(Build.BuildId)")
             # Extract the run ID from the triggered pipeline
             run_id=$(echo $triggered_run | jq -r '.id')
             # Print the run ID
