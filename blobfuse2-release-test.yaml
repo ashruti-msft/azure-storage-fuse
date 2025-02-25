@@ -157,7 +157,11 @@ extends:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
       - job: CheckPipelineStatus
-        displayName: 'Check Triggered Pipeline Status'
+        timeoutInMinutes: 120
+        pool:
+          name: blobfuse2-pool
+          image: ubuntu22-1espt
+          os: linux
         dependsOn: TriggerAndWaitForTestPipeline
         condition: succeeded()
         steps:
@@ -179,7 +183,11 @@ extends:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
       - job: ContinueOriginalPipeline
-        displayName: 'Continue Original Pipeline'
+        timeoutInMinutes: 120
+        pool:
+          name: blobfuse2-pool
+          image: ubuntu22-1espt
+          os: linux
         dependsOn: CheckPipelineStatus
         condition: succeeded()
         steps:
