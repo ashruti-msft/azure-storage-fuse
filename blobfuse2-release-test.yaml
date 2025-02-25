@@ -140,6 +140,17 @@ extends:
           os: linux
         steps:
         - checkout : none
+        - bash: |
+            az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --parameters "ReleasePipelineRunID=$(Build.BuildId)"
+            az pipelines list --output table --organization 'https://dev.azure.com/azstorage/' --project 'BlobFuse' 
+          displayName: 'Trigger Pipeline Test-Artifacts'
+          env:
+            AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+        - script: |
+            echo "Pipeline continues"
+          displayName: "Status"
+
         - script: |
             PIPELINE_ID=95  
             ORG_NAME="azstorage"
