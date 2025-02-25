@@ -146,6 +146,9 @@ extends:
             PROJECT_NAME="BlobFuse"
             PAT=$(System.AccessToken)
 
+            az pipelines list --output table
+
+
             echo "Triggering Pipeline B"
             echo "https://dev.azure.com/$ORG_NAME/$PROJECT_NAME/_apis/pipelines/$PIPELINE_ID/runs?pipelineVersion=$(Build.BuildId)&api-version=7.1&waitForCompletion=true"  
             
