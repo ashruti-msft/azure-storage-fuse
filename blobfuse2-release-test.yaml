@@ -118,8 +118,10 @@ extends:
 
         - bash: |
             az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/'
+            echo $triggered_run | jq .
             run_id=$(echo $triggered_run | jq -r '.id')
-            echo "Triggered pipeline run ID: $run_id"
+            echo "RUNID"
+            echo $run_id
           displayName: 'Trigger Pipeline 95'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
