@@ -159,6 +159,7 @@ extends:
       - job: CheckPipelineStatus
         displayName: 'Check Triggered Pipeline Status'
         steps:
+        - checkout : none
         - script: |
             echo "Checking the status of the triggered pipeline..."
             while true; do
@@ -180,6 +181,7 @@ extends:
         dependsOn: CheckPipelineStatus
         condition: succeeded()
         steps:
+        - checkout : none
         - script: 
             if( "$status" == "completed" ); then
               echo "Pipeline run $run_id completed successfully. Continuing the original pipeline."
