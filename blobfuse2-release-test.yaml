@@ -146,7 +146,7 @@ extends:
             PROJECT_NAME="BlobFuse"
             PAT=$(System.AccessToken)
 
-            az pipelines list --output table --organization 'https://dev.azure.com/azstorage/'
+            az pipelines list --output table --organization 'https://dev.azure.com/azstorage/' --project 'BlobFuse' --branch 'main'
 
 
             echo "Triggering Pipeline B"
