@@ -158,6 +158,8 @@ extends:
 
       - job: CheckPipelineStatus
         displayName: 'Check Triggered Pipeline Status'
+        dependsOn: TriggerAndWaitForTestPipeline
+        condition: succeeded()
         steps:
         - checkout : none
         - script: |
