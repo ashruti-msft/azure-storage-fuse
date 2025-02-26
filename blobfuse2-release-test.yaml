@@ -129,8 +129,8 @@ extends:
 
       - job: TriggerTestArtifactsPipeline
         timeoutInMinutes: 120
-        dependsOn: BuildArtifacts
-        condition: succeeded('BuildArtifacts')
+        dependsOn: Set_1
+        condition: succeeded('Set_1')
         pool:
           name: blobfuse2-pool
           image: ubuntu22-1espt
