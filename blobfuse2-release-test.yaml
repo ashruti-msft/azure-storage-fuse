@@ -6,6 +6,7 @@ variables:
   run_id: 0
   patToken: $(System.AccessToken)
   status: 'inProgress'
+  organization: azstorage
 
 parameters:
   - name: tag
@@ -130,7 +131,7 @@ extends:
         - script: |
             echo "Checking the status of the triggered pipeline..."
             while true; do
-              status=$(az pipelines runs show --organization https://dev.azure.com/$(organization) --project $(project) --pipeline-id $(pipelineId) --run-id $(run_id) --query status --output tsv --only-show-errors)
+              status=$(az pipelines show --organization https://dev.azure.com/$(organization) --project $(project) --id $(pipelineId) --query status --output tsv --only-show-errors)
               echo "Current status: $status"
               if [[ "$status" == "completed" || "$status" == "canceled" || "$status" == "failed" ]]; then
                 echo "Pipeline run $run_id has $status."
