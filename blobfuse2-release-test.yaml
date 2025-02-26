@@ -132,11 +132,6 @@ extends:
             fi
             echo "RUNID"
             echo $run_id
-          displayName: 'Trigger Pipeline 95'
-          env:
-            AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-
-        - script: |
             echo "Checking the status of the triggered pipeline..."
             while true; do
               result=$(az pipelines runs show --organization https://dev.azure.com/$(organization) --project $(project) --id $(run_id) --query result --output tsv --only-show-errors)
@@ -151,7 +146,7 @@ extends:
               echo "Pipeline run $run_id is still in progress. Checking again in 30 seconds..."
               sleep 30
             done
-          displayName: 'Check Pipeline Status'
+          displayName: 'Trigger and Check Pipeline Status'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
