@@ -139,15 +139,22 @@ extends:
         - script: |
             echo "Checking the status of the triggered pipeline..."
             while true; do
-              status=$(az pipelines show --organization https://dev.azure.com/$(organization) --project $(project) --id $(pipelineId) --query status --output tsv --only-show-errors)
-              echo "Current status: $status"
-              if [[ "$status" == "completed" || "$status" == "canceled" || "$status" == "failed" ]]; then
-                echo "Pipeline run $run_id has $status."
+              result=$(az pipelines runs show --organization https://dev.azure.com/$(organization) --project $(project) --id $(run_id) --query result --output tsv --only-show-errors)
+              echo "Current status: $result"
+              if [[ "$result" == "canceled" || "$result" == "failed" ]]; then
+                echo "Pipeline run $run_id has $result."
+                exit 1
+              elif [[ "$result" == "succeeded" ]]; then
+                echo "Pipeline run $run_id has succeeded."
                 break
               fi
-              echo "Pipeline run $runId is still in progress. Checking again in 30 seconds..."
+              echo "Pipeline run $run_id is still in progress. Checking again in 30 seconds..."
               sleep 30
             done
           displayName: 'Check Pipeline Status'
           env:
             AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+        - script: |
+            echo "Pipeline continues"
+          displayName: "Status"

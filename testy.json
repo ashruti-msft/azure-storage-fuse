@@ -1,0 +1,118 @@
+This command is in preview. It may be changed/removed in a future release.
+{
+  "authoredBy": {
+    "descriptor": "svc.Yzg4NDNkNmEtOGY1OS00YWVlLTk5MjItNTAyNWYzZTQ3MWY3OkFwcGxpY2F0aW9uOjU2YjBmMDQyLWIwNWUtODZkOS1iMGY3LWM1ZGRiMWU3NjM4NQ",
+    "directoryAlias": null,
+    "displayName": "MerlinBot",
+    "id": "56b0f042-b05e-86d9-b0f7-c5ddb1e76385",
+    "imageUrl": "https://dev.azure.com/azstorage/_apis/GraphProfile/MemberAvatars/svc.Yzg4NDNkNmEtOGY1OS00YWVlLTk5MjItNTAyNWYzZTQ3MWY3OkFwcGxpY2F0aW9uOjU2YjBmMDQyLWIwNWUtODZkOS1iMGY3LWM1ZGRiMWU3NjM4NQ",
+    "inactive": null,
+    "isAadIdentity": null,
+    "isContainer": null,
+    "isDeletedInOrigin": null,
+    "profileUrl": null,
+    "uniqueName": "Application\\56b0f042-b05e-86d9-b0f7-c5ddb1e76385",
+    "url": "https://spsprodwus21.vssps.visualstudio.com/Aaeac8552-d33e-4edd-a17b-4db655e0bffe/_apis/Identities/56b0f042-b05e-86d9-b0f7-c5ddb1e76385"
+  },
+  "badgeEnabled": null,
+  "buildNumberFormat": null,
+  "comment": "Pipeline enabled by MerlinBot in response to user inventory action. To learn more visit aka.ms/prodcatpipelinedisablement",
+  "createdDate": "2025-02-25T18:30:01.080000+00:00",
+  "demands": null,
+  "description": null,
+  "draftOf": null,
+  "drafts": [],
+  "dropLocation": null,
+  "id": 95,
+  "jobAuthorizationScope": "projectCollection",
+  "jobCancelTimeoutInMinutes": null,
+  "jobTimeoutInMinutes": null,
+  "latestBuild": null,
+  "latestCompletedBuild": null,
+  "metrics": null,
+  "name": "Test-Artifacts",
+  "options": null,
+  "path": "\\",
+  "process": {
+    "type": 2,
+    "yamlFilename": "blobfuse2-testArtifacts.yaml"
+  },
+  "processParameters": null,
+  "project": {
+    "abbreviation": null,
+    "defaultTeamImageUrl": null,
+    "description": null,
+    "id": "02939b2b-c8ea-40a6-a008-e771373ee99b",
+    "lastUpdateTime": "2021-06-30T00:05:48.71Z",
+    "name": "BlobFuse",
+    "revision": 49,
+    "state": "wellFormed",
+    "url": "https://dev.azure.com/azstorage/_apis/projects/02939b2b-c8ea-40a6-a008-e771373ee99b",
+    "visibility": "organization"
+  },
+  "properties": {},
+  "quality": "definition",
+  "queue": {
+    "id": 27,
+    "name": "Azure Pipelines",
+    "pool": {
+      "id": 9,
+      "isHosted": true,
+      "name": "Azure Pipelines"
+    },
+    "url": "https://dev.azure.com/azstorage/_apis/build/Queues/27"
+  },
+  "queueStatus": "enabled",
+  "repository": {
+    "checkoutSubmodules": false,
+    "clean": null,
+    "defaultBranch": "refs/heads/main",
+    "id": "ashruti-msft/azure-storage-fuse",
+    "name": "ashruti-msft/azure-storage-fuse",
+    "properties": {
+      "apiUrl": "https://api.github.com/repos/ashruti-msft/azure-storage-fuse",
+      "archived": "False",
+      "branchesUrl": "https://api.github.com/repos/ashruti-msft/azure-storage-fuse/branches",
+      "cloneUrl": "https://github.com/ashruti-msft/azure-storage-fuse.git",
+      "connectedServiceId": "3d7f8b01-fa24-45a3-8476-462c887511d9",
+      "defaultBranch": "main",
+      "externalId": "937906612",
+      "fullName": "ashruti-msft/azure-storage-fuse",
+      "hasAdminPermissions": "False",
+      "isFork": "True",
+      "isPrivate": "False",
+      "lastUpdated": "02/24/2025 05:27:09",
+      "manageUrl": "https://github.com/ashruti-msft/azure-storage-fuse",
+      "nodeId": "R_kgDON-dRtA",
+      "orgName": "ashruti-msft",
+      "ownerAvatarUrl": "https://avatars.githubusercontent.com/u/137055338?v=4",
+      "ownerId": "137055338",
+      "ownerIsAUser": "True",
+      "refsUrl": "https://api.github.com/repos/ashruti-msft/azure-storage-fuse/git/refs",
+      "reportBuildStatus": "True",
+      "safeRepository": "ashruti-msft/azure-storage-fuse",
+      "shortName": "azure-storage-fuse"
+    },
+    "rootFolder": null,
+    "type": "GitHub",
+    "url": "https://github.com/ashruti-msft/azure-storage-fuse.git"
+  },
+  "retentionRules": null,
+  "revision": 4,
+  "tags": [],
+  "triggers": [
+    {
+      "batchChanges": false,
+      "branchFilters": [],
+      "maxConcurrentBuildsPerBranch": 1,
+      "pathFilters": [],
+      "settingsSourceType": 2,
+      "triggerType": "continuousIntegration"
+    }
+  ],
+  "type": "build",
+  "uri": "vstfs:///Build/Definition/95",
+  "url": "https://dev.azure.com/azstorage/02939b2b-c8ea-40a6-a008-e771373ee99b/_apis/build/Definitions/95?revision=4",
+  "variableGroups": null,
+  "variables": null
+}
