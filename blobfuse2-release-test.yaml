@@ -134,7 +134,12 @@ extends:
         - bash: |
             triggered_run=$(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --query id)
             echo $triggered_run
-            run_id=$(echo $triggered_run | jq -r '.id')
+            # Check if the output is a number
+            if [[ $triggered_run =~ ^[0-9]+$ ]]; then
+              run_id=$triggered_run
+            else
+              run_id=$(echo $triggered_run | jq -r '.id')
+            fi
             echo "RUNID"
             echo $run_id
           displayName: 'Trigger Pipeline 95'
