@@ -121,16 +121,6 @@ extends:
         #     mkdir -p $(unsigned)/newdir
         #   displayName: "Create directory"
 
-      - job: TriggerTestArtifactsPipeline
-        timeoutInMinutes: 120
-        dependsOn: Set_1
-        condition: succeeded('Set_1')
-        pool:
-          name: blobfuse2-pool
-          image: ubuntu22-1espt
-          os: linux
-        steps:
-        - checkout: none
         - bash: |
             triggered_run=$(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --query id)
             echo $triggered_run
