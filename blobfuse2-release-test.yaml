@@ -119,7 +119,7 @@ extends:
         #   displayName: "GLIBC Version"
 
         - bash: |
-            triggered_run=$(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/')
+            triggered_run=$(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --variables "ReleasePipelineRunID=$Build.BuildId" --query id)
             echo $triggered_run
             run_id=$(echo $triggered_run | jq -r '.id')
             echo "RUNID"
