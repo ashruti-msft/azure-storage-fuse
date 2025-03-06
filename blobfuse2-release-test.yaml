@@ -192,8 +192,8 @@ extends:
             if [ $result -ne 1 ]; then
               exit 1
             fi
-        displayName: 'List Downloaded Package'
-        workingDirectory: $(Build.ArtifactStagingDirectory)/blobfuse2
+          displayName: 'List Downloaded Package'
+          workingDirectory: $(Build.ArtifactStagingDirectory)/blobfuse2
 
       - job: AccessArtifacts
         timeoutInMinutes: 120
@@ -202,7 +202,7 @@ extends:
           image: ubuntu22-1espt
           os: linux
         dependsOn: TriggerTestArtifactsPipeline
-        status: succeeded()
+        condition: succeeded('TriggerTestArtifactsPipeline')
         steps:
         - checkout: none
         - script: |
