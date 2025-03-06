@@ -1,3 +1,11 @@
+parameters:
+  - name: var1
+    type: integer
+    default: 0
+  - name: var2
+    type: string
+    default: ''
+
 stages:
 - stage: TestArtifacts
   jobs:
@@ -30,6 +38,11 @@ stages:
     - checkout: none
 
     - script: |
+        echo var1: $(var1)
+        echo var2: $(var2)
+      displayName: 'Display Variables'
+
+    - script: |
         git clone https://github.com/Azure/azure-storage-fuse
       displayName: 'Checkout Code'
       workingDirectory: $(root_dir)
@@ -56,7 +69,7 @@ stages:
         buildType: 'specific'
         project: 'BlobFuse'
         pipeline: 'Test-Release'
-        buildVersionToDownload: 'latest'
+        buildVersionToDownload: $(var1)
         artifactName: 'blobfuse2-linux-unsigned'
         downloadPath: '$(root_dir)'
         # itemPattern: 'blobfuse2-linux-unsigned/blobfuse2*$(tags)*x86_64.deb/'
@@ -68,4 +81,17 @@ stages:
           exit 1
         fi
       displayName: 'List Downloaded Package'
-      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned                
+      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned     
+
+    - script: |
+        mv ./newdir/newfile.txt ./newdir/newfileTest.txt
+        mv ./newdir ./newdirTest
+      displayName: "Rename Package"  
+      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned      
+      
+
+    # publishing the artifacts generated
+    - task: PublishBuildArtifacts@1
+      inputs:
+        artifactName: 'blobfuse2'
+      displayName: 'Publish Artifacts'    
