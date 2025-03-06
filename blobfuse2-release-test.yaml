@@ -134,7 +134,7 @@ extends:
             echo $run_id
             echo "Checking the status of the triggered pipeline..."
             while true; do
-              result=$(az pipelines runs show --organization https://dev.azure.com/$(organization) --project $(project) --id $(run_id) --query result --output tsv --only-show-errors)
+              result=$(az pipelines runs show --organization https://dev.azure.com/$(organization) --project $(project) --id $run_id --query result --output tsv --only-show-errors)
               echo "Current status: $result"
               if [[ "$result" == "canceled" || "$result" == "failed" ]]; then
                 echo "Pipeline run $run_id has $result."
