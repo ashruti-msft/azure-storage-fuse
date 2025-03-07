@@ -55,7 +55,6 @@ stages:
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
       inputs:
-        artifactName: 'blobfuse2-temp'
         buildType: 'specific'
         project: 'BlobFuse'
         pipeline: 'Test-Release'
