@@ -60,7 +60,7 @@ stages:
         project: 'BlobFuse'
         buildVersionToDownload: 'latest'
         targetPath: '$(root_dir)'
-        pipelineId: 96
+        definition: 96
 
     # # download artifacts that need to be published
     # - task: DownloadBuildArtifacts@0
