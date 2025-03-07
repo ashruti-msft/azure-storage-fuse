@@ -50,6 +50,7 @@ stages:
     - script: |
         ldd --version
         echo $(Build.BuildId)
+        mkdir -p $(root_dir)/blobfuse2-linux-unsigned
       displayName: "GLIBC Version"
 
     # Download artifacts from a specific pipeline.
