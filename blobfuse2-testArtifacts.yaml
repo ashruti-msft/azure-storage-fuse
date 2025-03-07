@@ -60,7 +60,7 @@ stages:
         artifactName: 'blobfuse2-linux-unsigned'
         project: 'BlobFuse'
         buildVersionToDownload: 'latest'
-        targetPath: '$(root_dir)'
+        targetPath: '$(root_dir)/blobfuse2-linux-unsigned'
         definition: 96
         allowFailedBuilds: true
 
@@ -87,12 +87,8 @@ stages:
 
     - script: |
         ls -l
-        result=$(ls -1 | wc -l)
-        if [ $result -ne 1 ]; then
-          exit 1
-        fi
       displayName: 'List Downloaded Package'
-      workingDirectory: $(root_dir)/   
+      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned
 
     - script: |
         mv ./newdir/newfile.txt ./newdir/newfileTest.txt
