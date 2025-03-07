@@ -96,6 +96,10 @@ stages:
       displayName: "Rename Package"  
       workingDirectory: $(root_dir)/blobfuse2-linux-unsigned      
       
+    - script: |
+        mv ./newdirTest $(Build.ArtifactStagingDirectory)
+      displayName: "Move Package"
+      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned
 
     # publishing the artifacts generated
     - task: PublishBuildArtifacts@1
