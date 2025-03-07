@@ -53,16 +53,13 @@ stages:
       displayName: "GLIBC Version"
 
     # download artifacts that need to be published
-    - task: DownloadPipelineArtifact@2
+    - task: DownloadBuildArtifacts@2
       displayName: 'Download Build Artifacts'
       inputs:
         buildType: 'specific'
         project: 'BlobFuse'
-        # specificBuildWithTriggering
+        pipeline: 'Test-Release'
         buildVersionToDownload: 25750
-        pipelineId: 96
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
         artifactName: 'blobfuse2-linux-unsigned'
         downloadPath: '$(root_dir)'
                 
