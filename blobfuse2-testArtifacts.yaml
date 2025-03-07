@@ -50,16 +50,23 @@ stages:
     - script: |
         ldd --version
       displayName: "GLIBC Version"
-      
-    - task: DownloadBuildArtifacts@1
-      inputs:
-        buildType: 'specific'
-        project: 'BlobFuse'
-        pipeline: 'Test-Release'
-        buildVersionToDownload: $(Build.BuildId)-1
-        artifactName: 'blobfuse2-linux-unsigned'
-        downloadPath: '$(root_dir)'
+
+    # download artifacts that need to be published
+    - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts'
+      inputs:
+        artifactName: 'blobfuse2-temp'
+        downloadPath: $(Build.ArtifactStagingDirectory)
+                
+    # - task: DownloadBuildArtifacts@1
+    #   inputs:
+    #     buildType: 'specific'
+    #     project: 'BlobFuse'
+    #     pipeline: 'Test-Release'
+    #     buildVersionToDownload: $(Build.BuildId)-1
+    #     artifactName: 'blobfuse2-linux-unsigned'
+    #     downloadPath: '$(root_dir)'
+    #   displayName: 'Download Build Artifacts'
 
     - script: |
         ls -l
