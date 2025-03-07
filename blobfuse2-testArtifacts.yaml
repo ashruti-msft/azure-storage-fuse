@@ -52,16 +52,26 @@ stages:
         echo $(Build.BuildId)
       displayName: "GLIBC Version"
 
-    # download artifacts that need to be published
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Build Artifacts'
+    # Download artifacts from a specific pipeline.
+    - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'specific'
-        project: 'BlobFuse'
-        pipeline: 'Test-Release'
-        buildVersionToDownload: 25750
         artifactName: 'blobfuse2-linux-unsigned'
-        downloadPath: '$(root_dir)'
+        project: 'BlobFuse'
+        buildVersionToDownload: 'latest'
+        targetPath: '$(root_dir)'
+        pipelineId: 96
+
+    # # download artifacts that need to be published
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download Build Artifacts'
+    #   inputs:
+    #     buildType: 'specific'
+    #     project: 'BlobFuse'
+    #     pipeline: 'Test-Release'
+    #     buildVersionToDownload: 25750
+    #     artifactName: 'blobfuse2-linux-unsigned'
+    #     downloadPath: '$(root_dir)'
                 
     # - task: DownloadBuildArtifacts@1
     #   inputs:
