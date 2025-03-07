@@ -61,6 +61,7 @@ stages:
         buildVersionToDownload: 'latest'
         targetPath: '$(root_dir)'
         definition: 96
+        allowFailedBuilds: true
 
     # # download artifacts that need to be published
     # - task: DownloadBuildArtifacts@0
