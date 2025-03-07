@@ -203,11 +203,6 @@ extends:
           displayName: "Move Package"
           workingDirectory: $(root_dir)/blobfuse2
 
-        - task: PublishBuildArtifacts@1
-          inputs:
-            artifactName: 'blobfuse2'
-          displayName: 'Publish Artifacts'
-
       - job: AccessArtifacts
         timeoutInMinutes: 120
         pool:
