@@ -30,14 +30,10 @@ stages:
     - checkout: none
 
     - script: |
-        echo var1: $(var1)
-        echo var2: $(var2)
-      displayName: 'Display Variables'
-
-    - script: |
         git clone https://github.com/Azure/azure-storage-fuse
       displayName: 'Checkout Code'
       workingDirectory: $(root_dir)
+
     - script: |
         git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
       displayName: 'Checkout Branch'
@@ -56,7 +52,6 @@ stages:
       displayName: "GLIBC Version"
       
     - task: DownloadBuildArtifacts@1
-      displayName: 'Download Build Artifacts'
       inputs:
         buildType: 'specific'
         project: 'BlobFuse'
@@ -64,7 +59,7 @@ stages:
         buildVersionToDownload: $(Build.BuildId)-1
         artifactName: 'blobfuse2-linux-unsigned'
         downloadPath: '$(root_dir)'
-        # itemPattern: 'blobfuse2-linux-unsigned/blobfuse2*$(tags)*x86_64.deb/'
+      displayName: 'Download Build Artifacts'
 
     - script: |
         ls -l
