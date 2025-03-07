@@ -92,7 +92,7 @@ stages:
           exit 1
         fi
       displayName: 'List Downloaded Package'
-      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned     
+      workingDirectory: $(root_dir)/   
 
     - script: |
         mv ./newdir/newfile.txt ./newdir/newfileTest.txt
