@@ -53,7 +53,7 @@ stages:
       displayName: "GLIBC Version"
 
     # download artifacts that need to be published
-    - task: DownloadBuildArtifacts@2
+    - task: DownloadPipelineArtifact@2
       displayName: 'Download Build Artifacts'
       inputs:
         buildType: 'specific'
