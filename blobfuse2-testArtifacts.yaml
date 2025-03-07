@@ -49,6 +49,7 @@ stages:
     # get glibc version with which build is done
     - script: |
         ldd --version
+        echo $(Build.BuildId)
       displayName: "GLIBC Version"
 
     # download artifacts that need to be published
