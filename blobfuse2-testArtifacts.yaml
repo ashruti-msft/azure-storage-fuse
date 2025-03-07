@@ -56,7 +56,12 @@ stages:
       displayName: 'Download Build Artifacts'
       inputs:
         artifactName: 'blobfuse2-temp'
-        downloadPath: $(Build.ArtifactStagingDirectory)
+        buildType: 'specific'
+        project: 'BlobFuse'
+        pipeline: 'Test-Release'
+        buildVersionToDownload: $(Build.BuildId)-1
+        artifactName: 'blobfuse2-linux-unsigned'
+        downloadPath: '$(root_dir)'
                 
     # - task: DownloadBuildArtifacts@1
     #   inputs:
