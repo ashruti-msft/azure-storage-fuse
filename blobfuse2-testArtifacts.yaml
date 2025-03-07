@@ -64,7 +64,7 @@ stages:
         buildType: 'specific'
         project: 'BlobFuse'
         pipeline: 'Test-Release'
-        buildVersionToDownload: 25713
+        buildVersionToDownload: $(Build.BuildId) - 1
         artifactName: 'blobfuse2-linux-unsigned'
         downloadPath: '$(root_dir)'
         # itemPattern: 'blobfuse2-linux-unsigned/blobfuse2*$(tags)*x86_64.deb/'
