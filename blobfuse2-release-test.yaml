@@ -179,26 +179,34 @@ extends:
 
         - script: |
             echo "Pipeline continues"
+            mkdir -p $(root_dir)/blobfuse2
           displayName: "Status"
 
-        - task: DownloadBuildArtifacts@1
-          displayName: 'Download Build Artifacts'
+        # Download artifacts from a specific pipeline.
+        - task: DownloadPipelineArtifact@2
           inputs:
             buildType: 'specific'
-            project: 'BlobFuse'
-            pipeline: 'Test-Artifacts'
-            buildVersionToDownload: $(Build.BuildId)+1
             artifactName: 'blobfuse2'
-            downloadPath: '$(Build.ArtifactStagingDirectory)/blobfuse2'
+            project: 'BlobFuse'
+            buildVersionToDownload: 'latest'
+            targetPath: '$(root_dir)/blobfuse2'
+            definition: 95
+            allowFailedBuilds: true
 
         - script: |
             ls -l
-            result=$(ls -1 | wc -l)
-            if [ $result -ne 1 ]; then
-              exit 1
-            fi
           displayName: 'List Downloaded Package'
-          workingDirectory: $(Build.ArtifactStagingDirectory)/blobfuse2
+          workingDirectory: $(root_dir)/blobfuse2
+
+        - script: |
+            mv ./newdirTest $(Build.ArtifactStagingDirectory)
+          displayName: "Move Package"
+          workingDirectory: $(root_dir)/blobfuse2
+
+        - task: PublishBuildArtifacts@1
+          inputs:
+            artifactName: 'blobfuse2'
+          displayName: 'Publish Artifacts'
 
       - job: AccessArtifacts
         timeoutInMinutes: 120
