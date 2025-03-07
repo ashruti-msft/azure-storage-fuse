@@ -185,7 +185,7 @@ extends:
             buildType: 'specific'
             project: 'BlobFuse'
             pipeline: 'Test-Artifacts'
-            buildVersionToDownload: $(run_id)+1
+            buildVersionToDownload: $(Build.BuildId)+1
             artifactName: 'blobfuse2'
             downloadPath: '$(Build.ArtifactStagingDirectory)/blobfuse2'
             # itemPattern: 'blobfuse2-linux-unsigned/blobfuse2*$(tags)*x86_64.deb/'

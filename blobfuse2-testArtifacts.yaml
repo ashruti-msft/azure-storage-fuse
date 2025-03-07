@@ -55,16 +55,13 @@ stages:
         ldd --version
       displayName: "GLIBC Version"
       
-    # - script: |
-    #     az pipelines build list --project 'BlobFuse' --branch 'main' --organization 'https://dev.azure.com/azstorage/' --query 'id'
-
     - task: DownloadBuildArtifacts@1
       displayName: 'Download Build Artifacts'
       inputs:
         buildType: 'specific'
         project: 'BlobFuse'
         pipeline: 'Test-Release'
-        buildVersionToDownload: $(Build.BuildId) - 1
+        buildVersionToDownload: $(Build.BuildId)-1
         artifactName: 'blobfuse2-linux-unsigned'
         downloadPath: '$(root_dir)'
         # itemPattern: 'blobfuse2-linux-unsigned/blobfuse2*$(tags)*x86_64.deb/'
