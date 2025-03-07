@@ -1,11 +1,3 @@
-parameters:
-  - name: var1
-    type: integer
-    default: 0
-  - name: var2
-    type: string
-    default: ''
-
 stages:
 - stage: TestArtifacts
   jobs:
@@ -63,6 +55,9 @@ stages:
         ldd --version
       displayName: "GLIBC Version"
       
+    - script: |
+        az pipelines build list --project 'BlobFuse' --branch 'main' --organization 'https://dev.azure.com/azstorage/' --query '.id'
+
     - task: DownloadBuildArtifacts@1
       displayName: 'Download Build Artifacts'
       inputs:

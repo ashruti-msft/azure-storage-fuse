@@ -143,7 +143,7 @@ extends:
         steps:
         - checkout: none
         - bash: |
-            triggered_run=$(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --query id --variables var1=$(Build.BuildId) var2="67")
+            triggered_run=$(az pipelines run --project 'BlobFuse' --id 95 --branch 'main' --organization 'https://dev.azure.com/azstorage/' --query id)
             echo $triggered_run
             # Check if the output is a number
             if [[ $triggered_run =~ ^[0-9]+$ ]]; then
