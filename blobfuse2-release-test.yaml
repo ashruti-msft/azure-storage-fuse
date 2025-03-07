@@ -185,6 +185,7 @@ extends:
         - script: |
             echo "Pipeline continues"
             mkdir -p $(root_dir)/blobfuse2
+            mkdir -p $(Build.ArtifactStagingDirectory)/blobfuse2
           displayName: "Status"
 
         # Download artifacts from a specific pipeline.
@@ -204,7 +205,7 @@ extends:
           workingDirectory: $(root_dir)/blobfuse2
 
         - script: |
-            mv ./newdirTest $(Build.ArtifactStagingDirectory)
+            mv ./newdirTest $(Build.ArtifactStagingDirectory)/blobfuse2
           displayName: "Move Package"
           workingDirectory: $(root_dir)/blobfuse2
 
