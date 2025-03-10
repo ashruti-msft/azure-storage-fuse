@@ -70,15 +70,37 @@ stages:
       workingDirectory: $(root_dir)/blobfuse2-linux-unsigned
 
     - script: |
-        mv ./newdir/newfile.txt ./newdir/newfileTest.txt
-        mv ./newdir ./newdirTest
+        for f in ./blobfuse2*$(tags)*.deb; do mv -v "$f" "${f/-$(tags)./-$(vmImage).}"; done;
+        cp ./blobfuse2*$(vmImage)*.deb $(Build.ArtifactStagingDirectory)
       displayName: "Rename Package"  
       workingDirectory: $(root_dir)/blobfuse2-linux-unsigned      
       
     - script: |
-        mv ./newdirTest $(Build.ArtifactStagingDirectory)/blobfuse2
-      displayName: "Move Package"
-      workingDirectory: $(root_dir)/blobfuse2-linux-unsigned
+        sudo dpkg --info blobfuse2*.deb
+        sudo dpkg -i blobfuse2*.deb
+        sudo apt-get install $(fuse-version) build-essential -y
+      displayName: 'Install Package'
+      workingDirectory: $(Build.ArtifactStagingDirectory)
+
+    - template: 'azure-pipeline-templates/release-distro-tests.yml'
+      parameters:
+        root_dir: $(root_dir)
+        work_dir: $(work_dir)
+        mount_dir: $(mount_dir)
+        temp_dir: $(temp_dir)
+        container: $(container)
+
+    # Create container for blobfuse and publish it
+    - script: |
+        sudo apt-get install $(tags) $(fuselib) -y
+        chmod 777 *.sh
+        ./dockerinstall.sh
+        ./buildcontainer.sh Dockerfile x86_64
+        ./publishcontainer.sh $(AZTEST_DOCKER_REG_USER)  $(AZTEST_DOCKER_REG_PWD) x86_64
+        ./buildcontainer.sh DockerfileMariner mariner-x86_64
+        ./publishcontainer.sh $(AZTEST_DOCKER_REG_USER)  $(AZTEST_DOCKER_REG_PWD) mariner-x86_64
+      displayName: "Create and publish container"
+      workingDirectory: $(work_dir)/docker
 
     # publishing the artifacts generated
     - task: PublishBuildArtifacts@1
