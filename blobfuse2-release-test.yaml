@@ -236,7 +236,6 @@ extends:
 
         - script: |
             echo "Pipeline continues"
-            mkdir -p $(root_dir)/blobfuse2
             mkdir -p $(Build.ArtifactStagingDirectory)/blobfuse2
           displayName: "Status"
 
@@ -247,14 +246,14 @@ extends:
             artifactName: 'blobfuse2'
             project: 'BlobFuse'
             buildVersionToDownload: 'latest'
-            targetPath: '$(root_dir)/blobfuse2'
+            targetPath: '$(Build.ArtifactStagingDirectory)/blobfuse2'
             definition: 95
             allowFailedBuilds: true
 
         - script: |
             ls -l
           displayName: 'List Downloaded Package'
-          workingDirectory: $(root_dir)/blobfuse2
+          workingDirectory: $(Build.ArtifactStagingDirectory)/blobfuse2
 
       - job: AccessArtifacts
         timeoutInMinutes: 120
