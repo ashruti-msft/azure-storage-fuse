@@ -56,7 +56,7 @@ stages:
     # Download artifacts from a specific pipeline.
     - task: DownloadPipelineArtifact@2
       inputs:
-        buildType: 'specific'
+        buildType: 'current'
         artifactName: 'blobfuse2-linux-unsigned'
         project: 'BlobFuse'
         buildVersionToDownload: 'latest'
