@@ -130,6 +130,12 @@ extends:
             fusermount -V
           displayName: 'Libfuse Setup'
 
+        - script: |
+            if [ ! -d "$(unsigned)" ]; then
+              mkdir -p $(unsigned)
+            fi
+          displayName: 'Check and create output paths'
+
         # build blobfuse2 and generate binary
         - template: azure-pipeline-templates/build-release.yml@self
           parameters:
