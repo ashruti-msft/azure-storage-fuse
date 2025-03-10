@@ -64,7 +64,7 @@ stages:
       inputs:
         buildType: 'specific'
         artifactName: 'blobfuse2-linux-unsigned'
-        project: $(project)'
+        project: $(project)
         specificBuildWithTriggering: true
         buildVersionToDownload: 'latest'
         targetPath: '$(root_dir)/blobfuse2-linux-unsigned'
