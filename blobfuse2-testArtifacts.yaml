@@ -59,6 +59,7 @@ stages:
         buildType: 'current'
         artifactName: 'blobfuse2-linux-unsigned'
         project: 'BlobFuse'
+        specificBuildWithTriggering: true
         buildVersionToDownload: 'latest'
         targetPath: '$(root_dir)/blobfuse2-linux-unsigned'
         definition: 96
