@@ -1,3 +1,9 @@
+variables:
+  tags: 'fuse3'
+  depends: 'fuse3'
+  project: 'BlobFuse'
+  pipelineId: 96
+
 stages:
 - stage: TestArtifacts
   jobs:
@@ -58,11 +64,11 @@ stages:
       inputs:
         buildType: 'specific'
         artifactName: 'blobfuse2-linux-unsigned'
-        project: 'BlobFuse'
+        project: $(project)'
         specificBuildWithTriggering: true
         buildVersionToDownload: 'latest'
         targetPath: '$(root_dir)/blobfuse2-linux-unsigned'
-        definition: 96
+        definition: $(pipelineId)
         allowFailedBuilds: true
 
     - script: |
