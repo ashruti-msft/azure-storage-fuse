@@ -123,6 +123,13 @@ extends:
             ldd --version
           displayName: "GLIBC Version"
 
+        # install fuse3 libfuse3-dev
+        - script: |
+            sudo apt-get update --fix-missing
+            sudo apt-get install fuse3 libfuse3-dev -y
+            fusermount -V
+          displayName: 'Libfuse Setup'
+
         # build blobfuse2 and generate binary
         - template: azure-pipeline-templates/build-release.yml@self
           parameters:
