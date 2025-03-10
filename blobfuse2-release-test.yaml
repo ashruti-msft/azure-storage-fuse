@@ -257,15 +257,23 @@ extends:
 
       - job: AccessArtifacts
         timeoutInMinutes: 120
+        dependsOn: TriggerTestArtifactsPipeline
+        condition: succeeded('TriggerTestArtifactsPipeline')
         pool:
           name: blobfuse2-pool
           image: ubuntu22-1espt
           os: linux
-        dependsOn: TriggerTestArtifactsPipeline
-        condition: succeeded('TriggerTestArtifactsPipeline')
+
+        templateContext:
+          inputs:
+          - input: pipelineArtifact
+            artifactName: 'blobfuse2'
+            targetPath: $(Build.ArtifactStagingDirectory)/blobfuse2
+            displayName: 'Download Artifacts'
         steps:
         - checkout: none
         - script: |
             echo "Accessing Artifacts"
-            ls -l $(Build.ArtifactStagingDirectory)/blobfuse2
+            ls -l 
           displayName: 'Access Artifacts'
+          workingDirectory: $(Build.ArtifactStagingDirectory)/blobfuse2
