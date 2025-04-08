@@ -1,415 +1,211 @@
-schedules:
-  # Cron string < minute hour day-of-month month day-of-week>
-  #             * means all like '*' in day of month means everyday
-  # Run only on main branch
-  # 'always' controls whether to run only if there is a change or not
-  # Run this pipeline every 15:00 time
-  - cron: '0 15 * * 6'
-    displayName: 'Weekly Perf Blobfuse2 Perf Run'
-    branches:
-      include:
-        - main
-parameters:
-  - name: resnet_test
-    displayName: 'ResNet50 Test'
-    type: boolean
-    default: false
-
-
 stages:
-- stage: ShortRunning
-  jobs:
-    - job: PerformanceEval
-      timeoutInMinutes: 2800 # two day timeout
-      strategy:
-        matrix:
-          Ubuntu-20:
-            DistroVer: "Ubn20_PERF"
-            AgentName: "blobfuse-ubuntu20"
-            Description: "Blobfuse2 Perf Test"
-
-      pool:
-        name: "blobfuse-perf-pool"
-        demands:
-          - ImageOverride -equals $(AgentName)
-
-      variables:
-        - group: NightlyBlobFuse
-        - name: MOUNT_DIR
-          value: "/home/vsts/workv2/blobfuse2mnt"
-        - name: TEMP_DIR
-          value: "/mnt/blobfuse2tmp"
-        - name: BLOBFUSE2_CFG
-          value: "$(System.DefaultWorkingDirectory)/blobfuse2_manual_perf.yaml"
-        - name: BLOBFUSE2_FILE_CFG
-          value: "$(System.DefaultWorkingDirectory)/blobfuse2_file_perf.yaml"          
-        - name: BLOBFUSE2_BLOCK_CFG
-          value: "$(System.DefaultWorkingDirectory)/blobfuse2_block_perf.yaml"          
-        - name: BLOBFUSE_CFG
-          value: "$(System.DefaultWorkingDirectory)/blobfuse_manual_perf.cfg"
-        - name: GOPATH
-          value: "/home/vsts/workv2/go"
-        - name: ROOT_DIR
-          value: "/home/vsts/workv2/"
-        - name: WORK_DIR
-          value: "/home/vsts/workv2/go/src/azure-storage-fuse"
-
-      steps:
-        - checkout: none      
-        
-        - script: |
-            echo $(Description)
-            hostnamectl
-          displayName: 'Print Agent Info'
-      
-        - script: |
-            df -h
-          displayName: 'Print Storage details'
-
-        - script: |          
-            sudo apt-get update --fix-missing -o Dpkg::Options::="--force-confnew"
-            sudo apt-get install fuse3 make cmake gcc g++ python3-setuptools python3-pip parallel fio -y -o Dpkg::Options::="--force-confnew"
-          displayName: 'Install libraries'
-
-        - script: |          
-            sudo apt-get install blobfuse -y -o Dpkg::Options::="--force-confnew"
-          displayName: 'Install blobfuse'
-
-          # Prestart cleanup
-        - script: |
-            sudo fusermount3 -u $(MOUNT_DIR)
-            sudo kill -9 `pidof blobfuse2`
-            sudo rm -rf $(ROOT_DIR)
-          displayName: 'PreBuild Cleanup'
-
-        # Create directory structure
-        - script: |
-            sudo rm -rf $(ROOT_DIR)
-            sudo mkdir -p $(ROOT_DIR)
-            sudo chown -R `whoami` $(ROOT_DIR)
-            chmod 777 $(ROOT_DIR)
-            mkdir -p $(ROOT_DIR)/go/src
-            sudo mkdir -p $(TEMP_DIR)
-            sudo chown -R `whoami` $(TEMP_DIR)
-            sudo chmod 777 $(TEMP_DIR)
-          displayName: 'Create Directory Structure'
-    
-        # Checkout the code  
-        - script: |
-            git clone https://github.com/Azure/azure-storage-fuse
-          displayName: 'Checkout Code'
-          workingDirectory: $(ROOT_DIR)/go/src
-
-        # Pull the branch
-        - script: |
-            git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
-          displayName: 'Checkout Branch'
-          workingDirectory: $(WORK_DIR)
-
-        # -------------------------------------------------------
-        # Pull and build the code
-        - template: 'azure-pipeline-templates/build.yml'
-          parameters:
-            working_directory: $(WORK_DIR)
-            root_dir: $(ROOT_DIR)
-            mount_dir: $(MOUNT_DIR)
-            temp_dir: $(TEMP_DIR)
-            gopath: $(GOPATH)
-            container: cont1
-            skip_ut: true
-
-        - script: |
-            cd $(WORK_DIR)
-            $(WORK_DIR)/blobfuse2 gen-test-config --config-file=azure_key_perf.yaml --container-name=cont1 --temp-path=$(TEMP_DIR) --output-file=$(BLOBFUSE2_CFG)
-            cat $(BLOBFUSE2_CFG)
-          displayName: "Generate v2 Config File"
-          env:
-            NIGHTLY_STO_ACC_NAME: $(PERF_WEEKLY_STO_BLOB_ACC_NAME)
-            NIGHTLY_STO_ACC_KEY: $(PERF_WEEKLY_STO_BLOB_ACC_KEY)
-            ACCOUNT_TYPE: 'block'
-            ACCOUNT_ENDPOINT: 'https://$(PERF_WEEKLY_STO_BLOB_ACC_NAME).blob.core.windows.net'
-          continueOnError: false
-        
-        - script: |
-            cd $(WORK_DIR)
-            $(WORK_DIR)/blobfuse2 gen-test-config --config-file=azure_key_perf.yaml --container-name=cont1 --temp-path=$(TEMP_DIR) --output-file=$(BLOBFUSE2_FILE_CFG)
-            $(WORK_DIR)/blobfuse2 gen-test-config --config-file=azure_block_perf.yaml --container-name=cont1 --temp-path=$(TEMP_DIR) --output-file=$(BLOBFUSE2_BLOCK_CFG)
-            echo "---------------------------------------------------"
-            echo " File Cache config"
-            echo "---------------------------------------------------"
-            cat $(BLOBFUSE2_FILE_CFG)
-            echo "---------------------------------------------------"
-            echo " Block Cache config"
-            echo "---------------------------------------------------"
-            cat $(BLOBFUSE2_BLOCK_CFG)
-            echo "---------------------------------------------------"
-          displayName: "Generate v2 Config File for File vs Block"
-          env:
-            NIGHTLY_STO_ACC_NAME: $(PERF_WEEKLY_STO_BLOB_ACC_NAME)
-            NIGHTLY_STO_ACC_KEY: $(PERF_WEEKLY_STO_BLOB_ACC_KEY)
-            ACCOUNT_TYPE: 'block'
-            ACCOUNT_ENDPOINT: 'https://$(PERF_WEEKLY_STO_BLOB_ACC_NAME).blob.core.windows.net'
-          continueOnError: false
-
-        - script: |
-            touch $(BLOBFUSE_CFG)
-            echo "accountName $(PERF_WEEKLY_STO_BLOB_ACC_NAME)" >> $(BLOBFUSE_CFG)
-            echo "accountKey $(PERF_WEEKLY_STO_BLOB_ACC_KEY)" >> $(BLOBFUSE_CFG)
-            echo "authType Key" >> $(BLOBFUSE_CFG)
-            echo "containerName cont1" >> $(BLOBFUSE_CFG)
-            cat $(BLOBFUSE_CFG)
-          displayName: "Generate v1 Config File"
-          continueOnError: false
-
-        # --------------------------------------------------------------------------------------------
-        # Block vs File Tests
-        - script: |
-            chmod 777 ./test/scripts/file_block_compare.sh
-            rm -rf $(MOUNT_DIR)/fio/*
-            ./test/scripts/file_block_compare.sh $(MOUNT_DIR)/fio $(TEMP_DIR) $(BLOBFUSE2_FILE_CFG) $(BLOBFUSE2_BLOCK_CFG) rw
-          displayName: 'Block-File Compare Test'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            echo "-----------------------------------------------------------------------------"        
-            echo "Write test results with dd"
-            echo "-----------------------------------------------------------------------------"
-            cat file_block_write.txt
-            echo .
-            # echo "-----------------------------------------------------------------------------"
-            # echo "Read test results with dd"
-            # cat file_block_read_dd.txt
-            # echo .
-            echo "-----------------------------------------------------------------------------"
-            echo "Read test results with FIO"
-            echo "-----------------------------------------------------------------------------"
-            cat file_block_read.txt
-            echo .
-            echo "-----------------------------------------------------------------------------"
-          displayName: 'Block-File Compare Test'
-          workingDirectory: $(WORK_DIR)
-
-        # --------------------------------------------------------------------------------------------
-        # FIO Tests
-        - script: |
-            chmod 777 ./test/scripts/fio.sh
-            rm -rf $(MOUNT_DIR)/fio/*
-            ./test/scripts/fio.sh $(MOUNT_DIR)/fio $(TEMP_DIR) $(BLOBFUSE2_CFG) $(BLOBFUSE_CFG) rw
-          displayName: 'FIO Sequential Test'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            cat results_fio_rw.txt
-          displayName: 'FIO Sequential Results'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            chmod 777 ./test/scripts/fio.sh
-            rm -rf $(MOUNT_DIR)/fio/*
-            ./test/scripts/fio.sh $(MOUNT_DIR)/fio $(TEMP_DIR) $(BLOBFUSE2_CFG) $(BLOBFUSE_CFG) randrw
-          displayName: 'FIO Random Test'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            cat results_fio_randrw.txt
-          displayName: 'FIO Random Results'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            chmod 777 ./test/scripts/fio.sh
-            rm -rf $(MOUNT_DIR)/fio/*
-            ./test/scripts/fio.sh $(MOUNT_DIR)/fio $(TEMP_DIR) $(BLOBFUSE2_CFG) $(BLOBFUSE_CFG) rw csi
-          displayName: 'FIO CSI Test'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            cat results_fio_rw.txt
-          displayName: 'FIO CSI Results'
-          workingDirectory: $(WORK_DIR)
-
-        # --------------------------------------------------------------------------------------------
-        # Upload-DownloadFIO Tests
-        - script: |
-            chmod 777 ./test/scripts/run.sh
-            ./test/scripts/run.sh $(MOUNT_DIR)/run $(TEMP_DIR) $(BLOBFUSE2_CFG) $(BLOBFUSE_CFG) $(BLOBFUSE2_BLOCK_CFG)
-
-          displayName: 'Upload Download'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            cat results.txt
-          displayName: 'Upload Download Results'
-          workingDirectory: $(WORK_DIR)
-
-        # --------------------------------------------------------------------------------------------
-        # Git clone test
-        - script: |
-            chmod 777 ./test/scripts/git_clone.sh
-            ./test/scripts/git_clone.sh $(MOUNT_DIR)/git $(TEMP_DIR) $(BLOBFUSE2_CFG) $(BLOBFUSE_CFG)
-
-          displayName: 'Git Clone'
-          workingDirectory: $(WORK_DIR)
-
-        - script: |
-            cat results_git_clone.txt
-          displayName: 'Git Clone Results'
-          workingDirectory: $(WORK_DIR)
-        
-- ${{ if eq(parameters.resnet_test, true) }}:
-  - stage: LongRunning
-    dependsOn: ShortRunning
+  - stage: BuildArtifacts
     jobs:
-      - job: ResNet50
-        timeoutInMinutes: 2800 # two day timeout
+      - job: Set_1
+        timeoutInMinutes: 120
         strategy:
           matrix:
-            Ubuntu-20:
-              DistroVer: "Ubn20_PERF"
+            Libfuse:
+              vmImage: 'ubuntu-18.04'
+              fuselib: 'libfuse-dev'
+              tags: 'fuse2'
+              depends: 'fuse'
+              container: 'test-cnt-ubn-18'
+              AgentName: "blobfuse-ubuntu18"
+            Libfuse3:
+              vmImage: 'ubuntu-20.04'
+              fuselib: 'libfuse3-dev'
+              tags: 'fuse3'
+              depends: 'fuse3'
+              container: 'test-cnt-ubn-20'
               AgentName: "blobfuse-ubuntu20"
-              Description: "Blobfuse2 Perf Test"
 
         pool:
-          name: "blobfuse-perf-pool"
+          name: "blobfuse-ubuntu-pool"
           demands:
-            - ImageOverride -equals $(AgentName)
+            - ImageOverride -equals $(agentName)
 
         variables:
           - group: NightlyBlobFuse
-          - name: MOUNT_DIR
-            value: "/home/vsts/workv2/blob_mnt"
-          - name: TEMP_DIR
-            value: "/mnt/blobfuse2tmp"
-          - name: BLOBFUSE2_CFG
-            value: "$(System.DefaultWorkingDirectory)/blobfuse2_manual_perf.yaml"
-          - name: GOPATH
-            value: "/home/vsts/workv2/go"
-          - name: ROOT_DIR
-            value: "/home/vsts/workv2/"
-          - name: WORK_DIR
-            value: "/home/vsts/workv2/go/src/azure-storage-fuse"
-
+          - name: root_dir
+            value: '$(System.DefaultWorkingDirectory)'
+          - name: work_dir
+            value: '$(System.DefaultWorkingDirectory)/azure-storage-fuse'
+        
         steps:
           - checkout: none
-
-          - script: |          
-              sudo apt-get update --fix-missing -o Dpkg::Options::="--force-confnew"
-              sudo apt-get install fuse3 make cmake gcc g++ python3-setuptools python3-pip parallel fio -y -o Dpkg::Options::="--force-confnew"
-            displayName: 'Install libraries'
-
-            # Prestart cleanup
-          - script: |
-              sudo fusermount3 -u $(MOUNT_DIR)
-              sudo kill -9 `pidof blobfuse2`
-              sudo rm -rf $(ROOT_DIR)
-            displayName: 'PreBuild Cleanup'
-
-          # Create directory structure
-          - script: |
-              sudo rm -rf $(ROOT_DIR)
-              sudo mkdir -p $(ROOT_DIR)
-              sudo chown -R `whoami` $(ROOT_DIR)
-              chmod 777 $(ROOT_DIR)
-              mkdir -p $(ROOT_DIR)/go/src
-              sudo mkdir -p $(TEMP_DIR)
-              sudo chown -R `whoami` $(TEMP_DIR)
-              sudo chmod 777 $(TEMP_DIR)
-            displayName: 'Create Directory Structure'
-      
-          # Checkout the code  
           - script: |
               git clone https://github.com/Azure/azure-storage-fuse
             displayName: 'Checkout Code'
-            workingDirectory: $(ROOT_DIR)/go/src
-
-          # Pull the branch
+            workingDirectory: $(root_dir)
+          
+          # list commits from past 12hrs
           - script: |
               git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
-            displayName: 'Checkout Branch'
-            workingDirectory: $(WORK_DIR)
+              git --no-pager log --since="12 hours ago" --stat
+            displayName: 'List Commits'
+            workingDirectory: $(work_dir)
+          
+          # install dependencies required for compiling blobfuse
+          - script: |
+              sudo apt-get update --fix-missing
+              sudo apt-get install ruby-dev build-essential pkg-config cmake gcc g++ rpm $(fuselib) -y
+              sudo gem install dotenv -v 2.8.1
+              sudo gem install fpm -V
+            displayName: "Installing Dependencies"
 
-          # -------------------------------------------------------
-          # Pull and build the code
-          - template: 'azure-pipeline-templates/build.yml'
+          # get glibc version with which build is done
+          - script: |
+             ldd --version
+            displayName: "GLIBC Version"
+
+          # build blobfuse2 and generate binary
+          - template: 'azure-pipeline-templates/build-release.yml'
             parameters:
-              working_directory: $(WORK_DIR)
-              root_dir: $(ROOT_DIR)
-              mount_dir: $(MOUNT_DIR)
-              temp_dir: $(TEMP_DIR)
-              gopath: $(GOPATH)
-              container: cont1
-              skip_ut: true
+              work_dir: $(work_dir)
+              root_dir: $(root_dir)
+              unit_test: ${{ parameters.unit_test }}
+              tags: $(tags)
+              container: $(container)
+
+          # place the generated binary files & any additional files in appropriate locations
+          - script: |
+              mkdir -p pkgDir/usr/bin/
+              mkdir -p pkgDir/usr/share/blobfuse2/
+              cp azure-storage-fuse/blobfuse2 pkgDir/usr/bin/blobfuse2
+              cp azure-storage-fuse/bfusemon pkgDir/usr/bin/bfusemon
+              cp azure-storage-fuse/setup/baseConfig.yaml pkgDir/usr/share/blobfuse2/
+              cp azure-storage-fuse/sampleFileCacheConfig.yaml pkgDir/usr/share/blobfuse2/
+              cp azure-storage-fuse/sampleStreamingConfig.yaml pkgDir/usr/share/blobfuse2/
+              mkdir -p pkgDir/etc/rsyslog.d
+              mkdir -p pkgDir/etc/logrotate.d
+              cp azure-storage-fuse/setup/11-blobfuse2.conf pkgDir/etc/rsyslog.d
+              cp azure-storage-fuse/setup/blobfuse2-logrotate pkgDir/etc/logrotate.d/blobfuse2
+            workingDirectory: $(root_dir)
+            displayName: 'Accumulate pkg files'
+          
+          # using fpm tool for packaging of our binary & performing post-install operations
+          # for additional information about fpm refer https://fpm.readthedocs.io/en/v1.13.1/
+          - script: |
+              fpm -s dir -t deb -n blobfuse2 -C pkgDir/ -v `./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3` -d $(depends) \
+              --maintainer "Blobfuse v-Team <blobfusevteam@microsoft.com>" --url "https://github.com/Azure/azure-storage-fuse" \
+              --description "An user-space filesystem for interacting with Azure Storage" 
+              mv ./blobfuse2*.deb ./blobfuse2-`./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3`-$(tags).x86_64.deb
+              cp ./blobfuse2*.deb $(Build.ArtifactStagingDirectory)
+            workingDirectory: $(root_dir)
+            displayName: 'Make deb Package'
 
           - script: |
-              cd $(ROOT_DIR)
-              pip install numpy tensorflow Pillow
-            displayName: "Install Python Dependencies"
-            continueOnError: false
+              fpm -s dir -t rpm -n blobfuse2 --rpm-digest sha256 -C pkgDir/ -v `./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3` -d $(depends) \
+              --maintainer "Blobfuse v-Team <blobfusevteam@microsoft.com>" --url "https://github.com/Azure/azure-storage-fuse" \
+              --description "An user-space filesystem for interacting with Azure Storage" 
+              mv ./blobfuse2*.rpm ./blobfuse2-`./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3`-$(tags).x86_64.rpm
+              cp ./blobfuse2*.rpm $(Build.ArtifactStagingDirectory)
+            workingDirectory: $(root_dir)
+            displayName: 'Make rpm Package'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: 'blobfuse2-temp'
+            displayName: 'Publish Artifacts' 
 
+      - job: Set_2_ARM
+        timeoutInMinutes: 120
+        strategy:
+          matrix:
+            Libfuse3:
+              vmImage: 'ubuntu-22.04'
+              fuselib: 'libfuse3-dev'
+              tags: 'fuse3'
+              depends: 'fuse3'
+              container: 'test-cnt-ubn-22-arm64'
+              AgentName: 'blobfuse-ubn22-arm64'
+
+        pool:
+          name: "blobfuse-ubn-arm64-pool"
+          demands:
+            - ImageOverride -equals $(agentName)
+
+        variables:
+          - group: NightlyBlobFuse
+          - name: root_dir
+            value: '$(System.DefaultWorkingDirectory)'
+          - name: work_dir
+            value: '$(System.DefaultWorkingDirectory)/azure-storage-fuse'
+        
+        steps:
+          - checkout: none
           - script: |
-              cd $(WORK_DIR)
-              $(WORK_DIR)/blobfuse2 gen-test-config --config-file=azure_key_perf.yaml --container-name=cont1 --temp-path=$(TEMP_DIR) --output-file=$(BLOBFUSE2_CFG)
-              cat $(BLOBFUSE2_CFG)
-            displayName: "Generate v2 Config File"
-            env:
-              NIGHTLY_STO_ACC_NAME: $(PERF_WEEKLY_STO_BLOB_ACC_NAME)
-              NIGHTLY_STO_ACC_KEY: $(PERF_WEEKLY_STO_BLOB_ACC_KEY)
-              ACCOUNT_TYPE: 'block'
-              ACCOUNT_ENDPOINT: 'https://$(PERF_WEEKLY_STO_BLOB_ACC_NAME).blob.core.windows.net'
-            continueOnError: false
-            
+              git clone https://github.com/Azure/azure-storage-fuse
+            displayName: 'Checkout Code'
+            workingDirectory: $(root_dir)
+          
+          # list commits from past 12hrs
           - script: |
-              cd $(ROOT_DIR)
-              wget https://github.com/Azure/azure-storage-fuse/releases/download/blobfuse2-2.0.0-preview.1/blobfuse2-2.0.0-preview.1-ubuntu-20.04-x86-64.deb
-              sudo dpkg -i $(ROOT_DIR)/blobfuse2-2.0.0-preview.1-ubuntu-20.04-x86-64.deb
-              sudo apt-get install -f
-              sudo apt-get install fuse3
-              blobfuse2 mount $(MOUNT_DIR) --config-file=$(BLOBFUSE2_CFG) --default-working-dir=$(WORK_DIR)
-              sleep 10
-              cd $(WORK_DIR)
-              python3 $(WORK_DIR)/test/perf_test/resnet50_classify.py --dataset='$(MOUNT_DIR)/data' --job='binary' --log=$(ROOT_DIR)/blobfuse2-perf.json
-            displayName: "Blobfuse2 ResNet50 Binary"
-            continueOnError: false
-
+              git checkout `echo $(Build.SourceBranch) | cut -d "/" -f 1,2 --complement`
+              git --no-pager log --since="12 hours ago" --stat
+            displayName: 'List Commits'
+            workingDirectory: $(work_dir)
+          
+          # install dependencies required for compiling blobfuse
           - script: |
-              sudo fusermount3 -u ${MOUNT_DIR}
-              sudo kill -9 `pidof blobfuse2` || true
-            displayName: "Unmount Blobfuse2 Binary Run"
+              sudo apt-get update --fix-missing
+              sudo apt-get install ruby-dev build-essential pkg-config cmake gcc g++ rpm $(fuselib) -y
+              sudo gem install fpm -V
+            displayName: "Installing Dependencies"
 
+          # get glibc version with which build is done
           - script: |
-              cd $(WORK_DIR)
-              $(WORK_DIR)/blobfuse2 gen-test-config --config-file=azure_key.yaml --container-name=cont1 --temp-path=$(TEMP_DIR) --output-file=$(BLOBFUSE2_CFG)
-              $(WORK_DIR)/blobfuse2 mount $(MOUNT_DIR) --config-file=$(BLOBFUSE2_CFG) --default-working-dir=$(WORK_DIR)
-              sleep 10
-              python3 $(WORK_DIR)/test/perf_test/resnet50_classify.py --dataset='$(MOUNT_DIR)/data' --job='main' --log=$(ROOT_DIR)/blobfuse2-perf.json
-            displayName: "Blobfuse2 ResNet50 on Main"
-            env:
-              NIGHTLY_STO_ACC_NAME: $(PERF_WEEKLY_STO_BLOB_ACC_NAME)
-              NIGHTLY_STO_ACC_KEY: $(PERF_WEEKLY_STO_BLOB_ACC_KEY)
-              ACCOUNT_TYPE: 'block'
-              ACCOUNT_ENDPOINT: 'https://$(PERF_WEEKLY_STO_BLOB_ACC_NAME).blob.core.windows.net'
-              VERBOSE_LOG: false
-              USE_HTTP: false
-            continueOnError: false
+             ldd --version
+            displayName: "GLIBC Version"
 
-          - script: |
-              cd $(WORK_DIR)
-              python3 $(WORK_DIR)/test/perf_test/generate_perf_report.py --metrics=images/second --log=$(ROOT_DIR)/blobfuse2-perf.json
-            displayName: "Perf Regression Test"
-            continueOnError: false
-
-          - publish: $(ROOT_DIR)/blobfuse2-perf.json
-            artifact: Blobfuse2_performance_report
-            displayName: Publish Performance Report
-
-          - script: |
-              sudo fusermount3 -u ${MOUNT_DIR}
-              sudo kill -9 `pidof blobfuse2` || true
-            displayName: "Unmount Blobfuse2 Main Branch Run"
-
-          # Cleanup
-          - template: 'azure-pipeline-templates/cleanup.yml'
+          # build blobfuse2 and generate binary
+          - template: 'azure-pipeline-templates/build-release.yml'
             parameters:
-              working_dir: $(WORK_DIR)
-              mount_dir: $(MOUNT_DIR)
-              temp_dir: $(TEMP_DIR)
+              work_dir: $(work_dir)
+              root_dir: $(root_dir)
+              unit_test: ${{ parameters.unit_test }}
+              tags: $(tags)
+              container: $(container)
 
+          # place the generated binary files & any additional files in appropriate locations
+          - script: |
+              mkdir -p pkgDir/usr/bin/
+              mkdir -p pkgDir/usr/share/blobfuse2/
+              cp azure-storage-fuse/blobfuse2 pkgDir/usr/bin/blobfuse2
+              cp azure-storage-fuse/bfusemon pkgDir/usr/bin/bfusemon
+              cp azure-storage-fuse/setup/baseConfig.yaml pkgDir/usr/share/blobfuse2/
+              cp azure-storage-fuse/sampleFileCacheConfig.yaml pkgDir/usr/share/blobfuse2/
+              cp azure-storage-fuse/sampleStreamingConfig.yaml pkgDir/usr/share/blobfuse2/
+              mkdir -p pkgDir/etc/rsyslog.d
+              mkdir -p pkgDir/etc/logrotate.d
+              cp azure-storage-fuse/setup/11-blobfuse2.conf pkgDir/etc/rsyslog.d
+              cp azure-storage-fuse/setup/blobfuse2-logrotate pkgDir/etc/logrotate.d/blobfuse2
+            workingDirectory: $(root_dir)
+            displayName: 'Accumulate pkg files'
+          
+          # using fpm tool for packaging of our binary & performing post-install operations
+          # for additional information about fpm refer https://fpm.readthedocs.io/en/v1.13.1/
+          - script: |
+              fpm -s dir -t deb -n blobfuse2 -C pkgDir/ -v `./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3` -d $(depends) \
+              --maintainer "Blobfuse v-Team <blobfusevteam@microsoft.com>" --url "https://github.com/Azure/azure-storage-fuse" \
+              --description "An user-space filesystem for interacting with Azure Storage" 
+              mv ./blobfuse2*.deb ./blobfuse2-`./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3`-$(tags).arm64.deb
+              cp ./blobfuse2*.deb $(Build.ArtifactStagingDirectory)
+            workingDirectory: $(root_dir)
+            displayName: 'Make deb Package'
+
+          - script: |
+              fpm -s dir -t rpm -n blobfuse2 --rpm-digest sha256 -C pkgDir/ -v `./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3` -d $(depends) \
+              --maintainer "Blobfuse v-Team <blobfusevteam@microsoft.com>" --url "https://github.com/Azure/azure-storage-fuse" \
+              --description "An user-space filesystem for interacting with Azure Storage" 
+              mv ./blobfuse2*.rpm ./blobfuse2-`./pkgDir/usr/bin/blobfuse2 --version | cut -d " " -f 3`-$(tags).aarch64.rpm
+              cp ./blobfuse2*.rpm $(Build.ArtifactStagingDirectory)
+            workingDirectory: $(root_dir)
+            displayName: 'Make rpm Package'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: 'blobfuse2-temp'
+            displayName: 'Publish Artifacts' 
+# BuildArtifacts end here
