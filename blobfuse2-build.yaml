@@ -1,3 +1,38 @@
+parameters:
+  - name: tag
+    displayName: 'New Release Tag'
+    type: string
+    default: 'blobfuse2-'
+  
+  - name: unit_test
+    displayName: 'Execute Unit Tests'
+    type: boolean
+    default: false
+
+  - name: post_release
+    displayName: 'Post Release on Github'
+    type: boolean
+    default: false
+
+  - name: publish_artifacts
+    displayName: 'Publish Artifacts to Linux Repos'
+    type: boolean
+    default: false
+
+  - name: draft
+    displayName: 'Post as Draft Release'
+    type: boolean
+    default: false
+
+  - name: prerelease
+    displayName: 'Post as PreRelease'
+    type: boolean
+    default: false
+
+  - name: update_version
+    displayName: 'Update Version'
+    type: boolean
+    default: false
 stages:
   - stage: BuildArtifacts
     jobs:
